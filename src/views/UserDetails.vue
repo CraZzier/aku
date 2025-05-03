@@ -34,21 +34,27 @@
                 Here's a small text description for the card content. Nothing more, nothing less.
                 </ion-card-content>
             </ion-card>
+            <ion-fab horizontal="end" vertical="bottom" slot="fixed">
+                <ion-fab-button @click="navigateToAddExamination">
+                <ion-icon :icon="add"></ion-icon>
+                </ion-fab-button>
+            </ion-fab>
         </ion-content>
     </ion-page>
 </template>
   
   
 <script setup lang="ts">
-import { IonItem,IonPage, IonIcon,IonSearchbar, IonContent, IonBackButton, IonButtons, IonButton, IonHeader, IonCardHeader, IonCardTitle, IonCardSubtitle, IonCardContent, IonCard, IonToolbar, IonAvatar, IonGrid, IonRow, IonCol} from '@ionic/vue';
+import { IonItem,IonPage, IonFab, IonFabButton, IonIcon,IonSearchbar, IonContent, IonBackButton, IonButtons, IonButton, IonHeader, IonCardHeader, IonCardTitle, IonCardSubtitle, IonCardContent, IonCard, IonToolbar, IonAvatar, IonGrid, IonRow, IonCol} from '@ionic/vue';
 import { onMounted, ref} from 'vue';
 import { caretBack, swapHorizontalOutline } from 'ionicons/icons';
 import { useGlobalStore } from '@/pinia';
-import { useRoute } from 'vue-router';
-import { trashOutline, swa} from 'ionicons/icons';
+import { useRoute, useRouter } from 'vue-router';
+import { trashOutline, add} from 'ionicons/icons';
 
 const piniaStore = useGlobalStore();
 const route = useRoute();
+const router = useRouter();
 const selectedUser = ref();
 const searchText = ref("");
 
@@ -56,7 +62,9 @@ onMounted(() => {
     selectedUser.value = piniaStore.users.find(user => user.id === route.params.id);
 });
 
-
+const navigateToAddExamination = () => {
+    router.push({ path: `/addExamination/${selectedUser.value.id}` });
+};
 function generateId(length = 15) {
   const chars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789';
   let result = '';
@@ -69,6 +77,15 @@ function generateId(length = 15) {
 </script>
   
 <style>
+ion-fab-button {
+  --background: #b7f399;
+  --background-activated: #87d361;
+  --background-hover: #a3e681;
+  --border-radius: 15px;
+  --box-shadow: 0px 1px 2px 0px rgba(0, 0, 0, 0.3),
+    0px 1px 3px 1px rgba(0, 0, 0, 0.15);
+  --color: black;
+}
 ion-button {
     --background: #b7f399;
     --background-activated: #87d361;

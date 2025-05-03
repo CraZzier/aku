@@ -26,5 +26,30 @@ export const useGlobalStore = defineStore('global', () => {
         users.value = await ionicStore.get('users') || []
         return toRaw(users.value)
     }
-    return { users, addUser, removeUser, getUsers }
+    const addExamination = async(examination: any, userId: string) => {
+        const usersFetched = await ionicStore.get('users')
+        const userIndex = usersFetched.findIndex((u: User) => u.id === userId)
+        if (userIndex !== -1) {
+            const user = usersFetched[userIndex]
+            if (!user.examinations) {
+                user.examinations = []
+            }
+            user.examinations.push(examination)
+            usersFetched[userIndex] = user
+            await ionicStore.set('users', toRaw(usersFetched))
+            users.value = usersFetched
+        }
+    }
+    const getExaminations = async(userId: string) => {
+        const usersFetched = await ionicStore.get('users')
+        const userIndex = usersFetched.findIndex((u: User) => u.id === userId)
+        if (userIndex !== -1) {
+            const user = usersFetched[userIndex]
+            if (user.examinations) {
+                return user.examinations
+            }
+        }
+        return []
+    }
+    return { users, addUser, removeUser, getUsers, addExamination, getExaminations }
 })

@@ -16,6 +16,10 @@ const routes: Array<RouteRecordRaw> = [
     component: () => import('@/views/UserDetails.vue')
   },
   {
+    path: '/addExamination/:userId',
+    component: () => import('@/views/AddExamination.vue')
+  },
+  {
     path: '/tabs/',
     component: TabsPage,
     children: [
