@@ -8,16 +8,16 @@ const routes: Array<RouteRecordRaw> = [
     redirect: '/tabs/tab1'
   },
   {
-    path: '/addUser',
-    component: () => import('@/views/AddUser.vue')
+    path: '/managesUser',
+    component: () => import('@/views/ManageUser.vue')
   },
   {
     path: '/userDetails/:id',
     component: () => import('@/views/UserDetails.vue')
   },
   {
-    path: '/addExamination/:userId',
-    component: () => import('@/views/AddExamination.vue')
+    path: '/manageExamination/:userId',
+    component: () => import('@/views/ManageExamination.vue')
   },
   {
     path: '/tabs/',

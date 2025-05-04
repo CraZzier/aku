@@ -34,10 +34,36 @@ export const useGlobalStore = defineStore('global', () => {
             if (!user.examinations) {
                 user.examinations = []
             }
-            user.examinations.push(examination)
-            usersFetched[userIndex] = user
-            await ionicStore.set('users', toRaw(usersFetched))
-            users.value = usersFetched
+            if (user.examinations.findIndex((e: any) => e.id === examination.id) === -1) {
+                user.examinations.push(examination)
+                usersFetched[userIndex] = user
+                await ionicStore.set('users', toRaw(usersFetched))
+                users.value = usersFetched
+            }else{
+                const examinationIndex = user.examinations.findIndex((e: any) => e.id === examination.id)
+                if (examinationIndex !== -1) {
+                    user.examinations[examinationIndex] = examination
+                    usersFetched[userIndex] = user
+                    await ionicStore.set('users', toRaw(usersFetched))
+                    users.value = usersFetched
+                }
+            }
+        }
+    }
+    const deleteExamination = async(examinationId: string, userId: string) => {
+        const usersFetched = await ionicStore.get('users')
+        const userIndex = usersFetched.findIndex((u: User) => u.id === userId)
+        if (userIndex !== -1) {
+            const user = usersFetched[userIndex]
+            if (user.examinations) {
+                const examinationIndex = user.examinations.findIndex((e: any) => e.id === examinationId)
+                if (examinationIndex !== -1) {
+                    user.examinations.splice(examinationIndex, 1)
+                    usersFetched[userIndex] = user
+                    await ionicStore.set('users', toRaw(usersFetched))
+                    users.value = usersFetched
+                }
+            }
         }
     }
     const getExaminations = async(userId: string) => {
@@ -51,5 +77,5 @@ export const useGlobalStore = defineStore('global', () => {
         }
         return []
     }
-    return { users, addUser, removeUser, getUsers, addExamination, getExaminations }
+    return { users, addUser, removeUser, getUsers, addExamination, getExaminations, deleteExamination }
 })

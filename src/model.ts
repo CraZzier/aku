@@ -17,7 +17,7 @@ export interface User {
     age?: number;
     email?: string;
     phone?: string;
-    examintions?: Examination[];
+    examinations?: Examination[];
 }
 
 export interface Symptom {

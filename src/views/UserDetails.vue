@@ -30,12 +30,40 @@
                         </ion-buttons>
                     </ion-toolbar>
                 </ion-item>
-                <ion-card-content>
-                Here's a small text description for the card content. Nothing more, nothing less.
-                </ion-card-content>
+                <div v-for="(examination, id) in selectedUser?.examinations" :key="generateId()">
+                    <ion-item class="header">
+                        <div style="font-size:12px;padding-right:10px">Wizyta -  {{ formatDate(examination.date) }}</div>
+                        <ion-button  slot="end" color="info" @click="manageExamination(examination.id)">
+                            <ion-icon :icon="createOutline"></ion-icon>
+                        </ion-button>
+                        <ion-button slot="end" color="danger" @click="deleteExamination(examination.id)">
+                            <ion-icon :icon="trashOutline"></ion-icon>
+                        </ion-button>
+                    </ion-item>
+                    <ion-item class="header-1">
+                            <div>Diagnoza</div>
+                    </ion-item>
+                    <ion-item>
+                            <div style="font-size:14px;margin-left:6px">{{examination.diagnosis || 'Brak danych'}}</div>
+                    </ion-item>
+                    <ion-item class="header-1">
+                            <div>Leczenie</div>
+                    </ion-item>
+                    <div style="padding-left: 12px; padding-bottom: 12px">
+                        <div v-for="treatment in examination.treatments" style="margin-top: 5px; margin-left:4px">
+                            <div v-if="treatment.isChecked" style="border-bottom:1px solid rgba(0,0,0,0.3); width:100%; padding:6px;color:black">
+                                {{treatment.name}}
+                            </div>
+                            <div v-if="treatment.description" style="margin-left: 12px;margin-top:12px; width:100%;padding:6px">
+                                {{treatment.description}}
+                            </div>
+                        </div>
+                    </div>
+
+                </div>
             </ion-card>
             <ion-fab horizontal="end" vertical="bottom" slot="fixed">
-                <ion-fab-button @click="navigateToAddExamination">
+                <ion-fab-button @click="navigateToManageExamination">
                 <ion-icon :icon="add"></ion-icon>
                 </ion-fab-button>
             </ion-fab>
@@ -46,24 +74,33 @@
   
 <script setup lang="ts">
 import { IonItem,IonPage, IonFab, IonFabButton, IonIcon,IonSearchbar, IonContent, IonBackButton, IonButtons, IonButton, IonHeader, IonCardHeader, IonCardTitle, IonCardSubtitle, IonCardContent, IonCard, IonToolbar, IonAvatar, IonGrid, IonRow, IonCol} from '@ionic/vue';
-import { onMounted, ref} from 'vue';
+import { onMounted, ref, computed} from 'vue';
 import { caretBack, swapHorizontalOutline } from 'ionicons/icons';
 import { useGlobalStore } from '@/pinia';
 import { useRoute, useRouter } from 'vue-router';
-import { trashOutline, add} from 'ionicons/icons';
+import { trashOutline, add, createOutline} from 'ionicons/icons';
+import { Examination } from '@/model';
 
 const piniaStore = useGlobalStore();
+const selectedUser = computed(() => piniaStore.users.find(user => user.id === route.params.id));
 const route = useRoute();
 const router = useRouter();
-const selectedUser = ref();
 const searchText = ref("");
+const formatDate = (date: string) => {
+    const options: Intl.DateTimeFormatOptions = { 
+        year: 'numeric', 
+        month: '2-digit', 
+        day: '2-digit', 
+        hour: '2-digit', 
+        minute: '2-digit' 
+    };
+    return new Date(date).toLocaleDateString('pl-PL', options);
+};
 
-onMounted(() => {
-    selectedUser.value = piniaStore.users.find(user => user.id === route.params.id);
-});
-
-const navigateToAddExamination = () => {
-    router.push({ path: `/addExamination/${selectedUser.value.id}` });
+onMounted(async () => {
+})
+const navigateToManageExamination = () => {
+    router.push({ path: `/manageExamination/${selectedUser.value?.id}` });
 };
 function generateId(length = 15) {
   const chars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789';
@@ -74,6 +111,12 @@ function generateId(length = 15) {
   }
   return result;
 }
+const manageExamination = (examinationId : string) => {
+    router.push({ path: `/manageExamination/${selectedUser.value?.id}`, query: { examinationId: examinationId } });
+};
+const deleteExamination = (examinationId:string) => {
+    piniaStore.deleteExamination(examinationId, selectedUser.value?.id!);
+};
 </script>
   
 <style>
@@ -92,6 +135,14 @@ ion-button {
     --background-hover: #a3e681;
     --border-radius: 15px;
     --box-shadow: 0px 1px 2px 0px rgba(0, 0, 0, 0.3), 0px 1px 3px 1px rgba(0, 0, 0, 0.15);
+    --color: black;
+}
+.header{
+    --background: rgba(0,0,0,0.15);
+    --color: black;
+}
+.header-1{
+    --background: rgba(0,0,0,0.05) ;
     --color: black;
 }
 </style>

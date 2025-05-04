@@ -168,6 +168,7 @@ import {
   IonModal,
   IonLabel,
   IonCheckbox,
+  IonTextarea,
   IonInput,
   IonPage,
   IonContent,
@@ -187,7 +188,7 @@ import { Camera, CameraResultType, CameraSource } from '@capacitor/camera';
 import { useRoute } from "vue-router";
 const diagnosis = ref<string>(""); 
 const notes = ref<string>("");
-const treatments = reactive<Treatment[]>(
+let treatments = reactive<Treatment[]>(
     [
         "myo-fascia",
         "GT",
@@ -214,7 +215,7 @@ const treatments = reactive<Treatment[]>(
     })
 );
 
-const muscleTestObjects = reactive<MuscleTest[]>(
+let muscleTestObjects = reactive<MuscleTest[]>(
   [
     "Hallusis",
     "Digitorium",
@@ -262,7 +263,7 @@ const muscleTestObjects = reactive<MuscleTest[]>(
     isChecked: false,
   }))
 );
-const symptoms = reactive<Symptom[]>(
+let symptoms = reactive<Symptom[]>(
   [
     "Kaszel",
     "Gorączka",
@@ -300,8 +301,9 @@ const pickImage = async () => {
   }
 };
 const saveExamination = async () => {
+  const id = route.query.examinationId || generateId();
   const examination: Examination = {
-    id: generateId(),
+    id: id as string,
     date: new Date().toISOString(),
     symptoms: toRaw(symptoms),
     muscleTests: toRaw(muscleTestObjects),
@@ -341,29 +343,34 @@ const addCustomSymptom = () => {
 };
 const piniaStore = useGlobalStore();
 const ctx = ref<CanvasRenderingContext2D | null>(null);
-const userData = reactive({
-  name: "",
-  surname: "",
-  age: 0,
-  email: "",
-  phone: "",
-});
-
-const saveUser = async () => {
-  const user = {
-    id: generateId(),
-    name: userData.name,
-    surname: userData.surname,
-    age: userData.age,
-    email: userData.email,
-    phone: userData.phone,
-  };
-  piniaStore.addUser(user);
-};
 
 const image = new Image();
 image.src = "/puls.jpg";
 onMounted(() => {
+  console.log(route.query.examinationId, route.params.userId);
+  if (route.query.examinationId && route.params.userId){
+    const user = piniaStore.users.find(
+      (user) => user.id === route.params.userId
+    );
+    console.log(user, piniaStore.users);
+    if (user) {
+      console.log(user);
+      const examination = user.examinations?.find(
+        (examination) => examination.id === route.query.examinationId
+      );
+      if (examination) {
+        console.log(examination);
+        diagnosis.value = examination.diagnosis;
+        symptoms = examination.symptoms;
+        muscleTestObjects = examination.muscleTests;
+        imgSaved.value = examination.pulseImage;
+        image.src = examination.pulseImage;
+        treatments=examination.treatments;
+        notes.value = examination.notes;
+        selectedImage.value = examination.notesImage;
+      }
+    }
+  }
   if (!canvas.value) {
     console.error("Canvas element is not available");
     return;
