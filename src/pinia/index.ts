@@ -9,13 +9,20 @@ export const useGlobalStore = defineStore('global', () => {
 
     const addUser = async (user: User) => {
         await getUsers()
-        users.value.push(user)
-        console.log('usersFetched', users.value)
-        await ionicStore.set('users', toRaw(users.value))
+        if (users.value.findIndex((u: User) => u.id === user.id) !== -1) {
+            const userIndex = users.value.findIndex((u: User) => u.id === user.id)
+            users.value[userIndex] = user
+            await ionicStore.set('users', toRaw(users.value))
+            return
+        }else{
+            users.value.push(user)
+            console.log('usersFetched', users.value)
+            await ionicStore.set('users', toRaw(users.value))
+        }
     }
-    const removeUser = async(user: User) => {
+    const removeUser = async(userId: string) => {
         const usersFetched = await ionicStore.get('users')
-        const index = usersFetched.findIndex((u: User) => u.email === user.email)
+        const index = usersFetched.findIndex((u: User) => u.id === userId)
         if (index !== -1) {
             usersFetched.splice(index, 1)
             await ionicStore.set('users', toRaw(usersFetched))

@@ -1,7 +1,30 @@
 <template>
   <ion-page>
+    <ion-header>
+        <ion-label>
+            <div style="padding:20px;">
+                <div style="font-size: 20px">Lista pacjentów</div>
+            </div>
+        </ion-label>
+    </ion-header>
     <ion-content fixed-slot-placement="before">
-      <ion-searchbar v-model="searchText"></ion-searchbar>
+      <ion-fab slot="fixed" vertical="top" horizontal="end" :edge="true">
+          <ion-fab-button size="small" color="dark">
+              <ion-icon :icon="barChartOutline"></ion-icon>
+          </ion-fab-button>
+          <ion-fab-list side="bottom">
+              <ion-fab-button  @click="changeSortTo('alphabetToggle')">
+                  <ion-icon :icon="atOutline"></ion-icon>
+              </ion-fab-button>
+              <ion-fab-button color="secondary" @click="changeSortTo('lastVisitToggle')">
+                  <ion-icon :icon="calendarNumberOutline"></ion-icon>
+              </ion-fab-button>
+              <ion-fab-button color="primary" @click="changeSortTo('createdToggle')">
+                  <ion-icon :icon="footstepsOutline"></ion-icon>
+              </ion-fab-button>
+          </ion-fab-list>
+      </ion-fab>
+      <ion-searchbar v-model="searchText" style="margin-top:20px"></ion-searchbar>
       <ion-fab horizontal="end" vertical="bottom" slot="fixed">
         <ion-fab-button @click="navigateToAddUser">
           <ion-icon :icon="add"></ion-icon>
@@ -29,15 +52,20 @@ import {
   IonContent,
   IonFab,
   IonFabButton,
+  IonFabList,
   IonIcon,
   IonPage,
   IonItem,
+  IonHeader,
+  IonToolbar,
+  IonButtons,
+  IonBackButton,
   IonLabel,
   IonList,
 } from "@ionic/vue";
 import { ref, onMounted, computed } from "vue";
 import { User } from "@/model"
-import { add } from "ionicons/icons";
+import { add,accessibilityOutline,swapHorizontalOutline, barChartOutline, atOutline, calendarNumberOutline, footstepsOutline  } from "ionicons/icons";
 import { useRouter } from "vue-router";
 import { useGlobalStore } from "@/pinia";
 
@@ -46,7 +74,7 @@ const router = useRouter();
 const piniaStore = useGlobalStore();
 
 const navigateToAddUser = () => {
-  router.push("/addUser");
+  router.push("/manageUser");
 };
 const navigateToUserDetails = (id: string) => {
   if (!id) {

@@ -8,7 +8,7 @@ const routes: Array<RouteRecordRaw> = [
     redirect: '/tabs/tab1'
   },
   {
-    path: '/managesUser',
+    path: '/manageUser',
     component: () => import('@/views/ManageUser.vue')
   },
   {

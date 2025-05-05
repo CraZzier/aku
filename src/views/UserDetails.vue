@@ -8,9 +8,28 @@
             </ion-toolbar>
         </ion-header>
         <ion-content class="ion-padding">
+            <ion-fab slot="fixed" vertical="top" horizontal="end" :edge="true">
+                <ion-fab-button size="small" color="dark">
+                    <ion-icon :icon="barChartOutline"></ion-icon>
+                </ion-fab-button>
+                <ion-fab-list side="bottom">
+                    <ion-fab-button  @click="changeSortTo('asc')">
+                        <ion-icon :icon="swapHorizontalOutline"></ion-icon>
+                    </ion-fab-button>
+                    <ion-fab-button color="secondary" @click="changeSortTo('desc')">
+                        <ion-icon :icon="swapHorizontalOutline"></ion-icon>
+                    </ion-fab-button>
+                    <ion-fab-button color="primary" @click="changeSortTo('diagnosis')">
+                        <ion-icon :icon="accessibilityOutline"></ion-icon>
+                    </ion-fab-button>
+                    <ion-fab-button color="danger" @click="deleteUser">
+                        <ion-icon :icon="trashOutline"></ion-icon>
+                    </ion-fab-button>
+                </ion-fab-list>
+            </ion-fab>
             <ion-card>
                 <img :src="'https://picsum.photos/80/80?random=' + 1" alt="avatar" height="80" width="100%" />
-                <ion-item>
+                <ion-item atyle="overflow:auto">
                     <ion-card-header>
                         <ion-card-title >{{selectedUser?.name}} {{ selectedUser?.surname }}</ion-card-title>
                         <ion-card-subtitle>{{ selectedUser?.email }} {{ selectedUser?.phone }}</ion-card-subtitle>
@@ -19,18 +38,12 @@
                 </ion-item>
                 <ion-item>
                     <ion-toolbar>
-                        <ion-buttons slot="end">
+                        <ion-buttons >
                             <ion-searchbar v-model="searchText" placeholder=""></ion-searchbar>
-                            <ion-button  color="info">
-                                <ion-icon :icon="swapHorizontalOutline"></ion-icon>
-                            </ion-button>
-                            <ion-button  color="danger">
-                                <ion-icon :icon="trashOutline"></ion-icon>
-                            </ion-button>
                         </ion-buttons>
                     </ion-toolbar>
                 </ion-item>
-                <div v-for="(examination, id) in selectedUser?.examinations" :key="generateId()">
+                <div v-for="(examination, id) in examinationsFilteredAndSorted" :key="generateId()">
                     <ion-item class="header">
                         <div style="font-size:12px;padding-right:10px">Wizyta -  {{ formatDate(examination.date) }}</div>
                         <ion-button  slot="end" color="info" @click="manageExamination(examination.id)">
@@ -73,16 +86,48 @@
   
   
 <script setup lang="ts">
-import { IonItem,IonPage, IonFab, IonFabButton, IonIcon,IonSearchbar, IonContent, IonBackButton, IonButtons, IonButton, IonHeader, IonCardHeader, IonCardTitle, IonCardSubtitle, IonCardContent, IonCard, IonToolbar, IonAvatar, IonGrid, IonRow, IonCol} from '@ionic/vue';
+import { IonItem,IonPage, IonFab, IonFabList, IonFabButton, IonIcon,IonSearchbar, IonContent, IonBackButton, IonButtons, IonButton, IonHeader, IonCardHeader, IonCardTitle, IonCardSubtitle, IonCardContent, IonCard, IonToolbar, IonAvatar, IonGrid, IonRow, IonCol} from '@ionic/vue';
 import { onMounted, ref, computed} from 'vue';
 import { caretBack, swapHorizontalOutline } from 'ionicons/icons';
 import { useGlobalStore } from '@/pinia';
 import { useRoute, useRouter } from 'vue-router';
-import { trashOutline, add, createOutline} from 'ionicons/icons';
+import { trashOutline, add, createOutline, document, colorPalette, globe, accessibilityOutline, barChartOutline } from 'ionicons/icons';
 import { Examination } from '@/model';
 
 const piniaStore = useGlobalStore();
 const selectedUser = computed(() => piniaStore.users.find(user => user.id === route.params.id));
+const sorting = ref<string>("");
+const examinationsFilteredAndSorted = computed(() => {
+    return selectedUser.value?.examinations?.filter(examination => {
+        return (examination.diagnosis.toLowerCase().includes(searchText.value.toLowerCase()) ||
+        examination.treatments.some(treatment => treatment.name.toLowerCase().includes(searchText.value.toLowerCase()) && treatment.isChecked) ||
+        examination.treatments.some(treatment => treatment.description.toLowerCase().includes(searchText.value.toLowerCase()) && treatment.isChecked) || 
+        examination.symptoms.some(symptom => symptom.name.toLowerCase().includes(searchText.value.toLowerCase()) && symptom.isChecked) || 
+        examination.notes.toLowerCase().includes(searchText.value.toLowerCase()) ||
+        examination.date.toLowerCase().includes(searchText.value.toLowerCase()));
+    }).sort((a, b) => {
+        if (sorting.value === "") {
+            return 0;
+        }
+        if (sorting.value === "asc") {
+            return new Date(a.date).getTime() - new Date(b.date).getTime();
+        }
+        if (sorting.value === "desc") {
+            return new Date(b.date).getTime() - new Date(a.date).getTime();
+        }
+        if (sorting.value === "diagnosis") {
+            return a.diagnosis.localeCompare(b.diagnosis);
+        }
+        return 0;
+    });
+});
+const changeSortTo = (sort: string) => {
+    if (sorting.value === sort) {
+        sorting.value = "";
+        return;
+    }
+    sorting.value = sort;
+};
 const route = useRoute();
 const router = useRouter();
 const searchText = ref("");
@@ -99,6 +144,10 @@ const formatDate = (date: string) => {
 
 onMounted(async () => {
 })
+const deleteUser = () => {
+    piniaStore.removeUser(selectedUser.value?.id!);
+    router.push({ path: '/' });
+};
 const navigateToManageExamination = () => {
     router.push({ path: `/manageExamination/${selectedUser.value?.id}` });
 };

@@ -3,7 +3,7 @@
     <ion-header>
       <ion-toolbar>
         <ion-buttons slot="start">
-          <ion-back-button text="Cofnij" :icon="caretBack"></ion-back-button>
+          <ion-back-button ref="back-button" text="Cofnij" :icon="caretBack"></ion-back-button>
         </ion-buttons>
       </ion-toolbar>
     </ion-header>
@@ -186,6 +186,7 @@ import { useGlobalStore } from "@/pinia";
 import { Examination, MuscleTest, Symptom, Treatment } from "@/model";
 import { Camera, CameraResultType, CameraSource } from '@capacitor/camera';
 import { useRoute } from "vue-router";
+import router from "@/router";
 const diagnosis = ref<string>(""); 
 const notes = ref<string>("");
 let treatments = reactive<Treatment[]>(
@@ -314,6 +315,7 @@ const saveExamination = async () => {
     notesImage: selectedImage.value as string,
   };
   piniaStore.addExamination(examination, route.params.userId as string);
+  router.push('/userDetails/' + route.params.userId);
 };
 const addCustomTreatment = () => {
   if (
@@ -364,7 +366,7 @@ onMounted(() => {
         symptoms = examination.symptoms;
         muscleTestObjects = examination.muscleTests;
         imgSaved.value = examination.pulseImage;
-        image.src = examination.pulseImage;
+        image.src = examination.pulseImage || "/puls.jpg";
         treatments=examination.treatments;
         notes.value = examination.notes;
         selectedImage.value = examination.notesImage;

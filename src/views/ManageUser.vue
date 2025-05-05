@@ -65,9 +65,13 @@
 import { IonInput,IonPage, IonContent, IonItem, IonList, IonButton, IonBackButton, IonButtons, IonHeader, IonToolbar} from '@ionic/vue';
 import { reactive, onMounted } from 'vue';
 import { caretBack } from 'ionicons/icons';
+import { useRouter } from 'vue-router';
+import { useRoute } from 'vue-router';
 import { useGlobalStore } from '@/pinia';
 
 const piniaStore = useGlobalStore();
+const router = useRouter();
+const route = useRoute();
 const userData = reactive({
     name: '',
     surname: '',
@@ -77,19 +81,42 @@ const userData = reactive({
 });
 
 const saveUser = async () => {
-    const user = {
-        id: generateId(),
-        name: userData.name,
-        surname: userData.surname,
-        age: userData.age,
-        email: userData.email,
-        phone: userData.phone
-    };
-    piniaStore.addUser(user);
+    const id = route.query.id;
+    if (id) {
+        const user = piniaStore.users.find(user => user.id === id);
+        if (user) {
+            user.name = userData.name;
+            user.surname = userData.surname;
+            user.age = userData.age;
+            user.email = userData.email;
+            user.phone = userData.phone;
+        }
+    } else {
+        const user = {
+            id: generateId(),
+            name: userData.name,
+            surname: userData.surname,
+            age: userData.age,
+            email: userData.email,
+            phone: userData.phone
+        };
+        piniaStore.addUser(user);
+    }
+    router.push({ path: '/' });
 };
 
 onMounted(() => {
-
+    const id = route.query.id;
+    if (id) {
+        const user = piniaStore.users.find(user => user.id === id);
+        if (user) {
+            userData.name = user.name || '';
+            userData.surname = user.surname || '';
+            userData.age = user.age || 0;
+            userData.email = user.email || '';
+            userData.phone = user.phone || '';
+        }
+    }
 });
 function generateId(length = 15) {
   const chars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789';
