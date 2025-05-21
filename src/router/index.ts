@@ -20,6 +20,10 @@ const routes: Array<RouteRecordRaw> = [
     component: () => import('@/views/ManageExamination.vue')
   },
   {
+    path: '/examinationSummary/:userId/:examinationId',
+    component: () => import('@/views/ExaminationSummary.vue')
+  },
+  {
     path: '/tabs/',
     component: TabsPage,
     children: [

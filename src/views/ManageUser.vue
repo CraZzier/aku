@@ -64,7 +64,7 @@
 <script setup lang="ts">
 import { IonInput,IonPage, IonContent, IonItem, IonList, IonButton, IonBackButton, IonButtons, IonHeader, IonToolbar} from '@ionic/vue';
 import { reactive, onMounted } from 'vue';
-import { caretBack } from 'ionicons/icons';
+import { caretBack, create } from 'ionicons/icons';
 import { useRouter } from 'vue-router';
 import { useRoute } from 'vue-router';
 import { useGlobalStore } from '@/pinia';
@@ -77,7 +77,8 @@ const userData = reactive({
     surname: '',
     age: 0,
     email: '',
-    phone: ''
+    phone: '',
+    created: ''
 });
 
 const saveUser = async () => {
@@ -90,6 +91,7 @@ const saveUser = async () => {
             user.age = userData.age;
             user.email = userData.email;
             user.phone = userData.phone;
+            user.created = userData.created
         }
     } else {
         const user = {
@@ -98,7 +100,8 @@ const saveUser = async () => {
             surname: userData.surname,
             age: userData.age,
             email: userData.email,
-            phone: userData.phone
+            phone: userData.phone,
+            created: new Date().toISOString(),
         };
         piniaStore.addUser(user);
     }

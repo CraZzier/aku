@@ -6,7 +6,13 @@ import { Storage } from '@ionic/storage';
 export const useGlobalStore = defineStore('global', () => {
     const users = ref<User[]>([])
     const ionicStore = inject('storage') as Storage;
-
+    const fetchUsers = computed(() => {
+        return users.value ?? []
+    })
+    const setUsers = async (usersList: User[]) => {
+        users.value = usersList
+        await ionicStore.set('users', toRaw(users.value))
+    }
     const addUser = async (user: User) => {
         await getUsers()
         if (users.value.findIndex((u: User) => u.id === user.id) !== -1) {
@@ -29,6 +35,7 @@ export const useGlobalStore = defineStore('global', () => {
         }
         users.value = usersFetched
     }
+
     const getUsers = async() => {
         users.value = await ionicStore.get('users') || []
         return toRaw(users.value)
@@ -84,5 +91,5 @@ export const useGlobalStore = defineStore('global', () => {
         }
         return []
     }
-    return { users, addUser, removeUser, getUsers, addExamination, getExaminations, deleteExamination }
+    return { users, addUser, removeUser, getUsers, addExamination, getExaminations, deleteExamination, setUsers, fetchUsers }
 })

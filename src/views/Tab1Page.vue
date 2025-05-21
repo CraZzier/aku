@@ -72,7 +72,7 @@ import { useGlobalStore } from "@/pinia";
 const searchText = ref("");
 const router = useRouter();
 const piniaStore = useGlobalStore();
-
+const sorting = ref<string>("");
 const navigateToAddUser = () => {
   router.push("/manageUser");
 };
@@ -84,13 +84,59 @@ const navigateToUserDetails = (id: string) => {
   router.push({ path: `/userDetails/${id}` });
 };  
 
+const changeSortTo = (sortOpt: string) =>{
+  if (sortOpt === "alphabetToggle") {
+    if (sorting.value === "alphabetAsc") {
+      sorting.value = "alphabetDesc";
+    }else{
+      sorting.value = "alphabetAsc";
+    }
+  }
+
+  if (sortOpt === "lastVisitToggle") {
+    if (sorting.value === "lastVisitAsc") {
+      sorting.value = "lastVisitDesc";
+    }else{
+      sorting.value = "lastVisitAsc";
+    }
+  }
+  if (sortOpt === "createdToggle") {
+    if (sorting.value === "createdAsc") {
+      sorting.value = "createdDesc";
+    }else{
+      sorting.value = "createdAsc";
+    }
+  }
+  if (sorting.value === sortOpt) {
+    sorting.value = "";
+    return;
+  }
+}
 const filteredUsers = computed(() => {
-  return piniaStore.users.filter((user) => {
+  console.log(piniaStore.fetchUsers)
+  return piniaStore.fetchUsers?.filter((user) => {
     console.log(user);
     return (
       user?.name?.toLowerCase().includes(searchText.value.toLowerCase()) ||
       user?.surname?.toLowerCase().includes(searchText.value.toLowerCase())
     );
+  }).sort((a, b) => {
+    const lastVisitA = new Date(a.examinations?.sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime())[0]?.date || "").getTime();
+    const lastVisitB = new Date(b.examinations?.sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime())[0]?.date || "").getTime();
+    if (sorting.value === "alphabetAsc") {
+      return a.name?.localeCompare(b.name || "") || 0;
+    } else if (sorting.value === "alphabetDesc") {
+      return b.name?.localeCompare(a.name || "") || 0;
+    } else if (sorting.value === "lastVisitAsc") {
+      return lastVisitA - lastVisitB;
+    } else if (sorting.value === "lastVisitDesc") {
+      return lastVisitB - lastVisitA;
+    } else if (sorting.value === "createdAsc") {
+      return new Date(a.created || "").getTime() - new Date(b.created || "").getTime();
+    } else if (sorting.value === "createdDesc") {
+      return new Date(b.created || "").getTime() - new Date(a.created || "").getTime();
+    }
+    return 0;
   });
 });
 

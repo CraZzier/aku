@@ -36,7 +36,6 @@ import '@ionic/vue/css/palettes/dark.system.css';
 import './theme/variables.css';
 
 const storage = new Storage();
-await storage.create();
 const pinia = createPinia();
 
 const app = createApp(App)

@@ -3,7 +3,10 @@
         <ion-header>
             <ion-toolbar>
                 <ion-buttons slot="start">
-                    <ion-back-button text="Cofnij" :icon="caretBack"></ion-back-button>
+                    <ion-button  @click="router.push('/')" style="height:30px;width:100px">
+                        <ion-icon :icon="caretBack"></ion-icon>
+                        Wróc
+                    </ion-button>
                 </ion-buttons>
             </ion-toolbar>
         </ion-header>
@@ -44,12 +47,12 @@
                     </ion-toolbar>
                 </ion-item>
                 <div v-for="(examination, id) in examinationsFilteredAndSorted" :key="generateId()">
-                    <ion-item class="header">
+                    <ion-item class="header" @click="showExaminationSummary(examination.id)">
                         <div style="font-size:12px;padding-right:10px">Wizyta -  {{ formatDate(examination.date) }}</div>
-                        <ion-button  slot="end" color="info" @click="manageExamination(examination.id)">
+                        <ion-button  slot="end" color="secondary" @click="manageExamination($event,examination.id)">
                             <ion-icon :icon="createOutline"></ion-icon>
                         </ion-button>
-                        <ion-button slot="end" color="danger" @click="deleteExamination(examination.id)">
+                        <ion-button slot="end" color="danger" @click="deleteExamination($event,examination.id)">
                             <ion-icon :icon="trashOutline"></ion-icon>
                         </ion-button>
                     </ion-item>
@@ -64,7 +67,7 @@
                     </ion-item>
                     <div style="padding-left: 12px; padding-bottom: 12px">
                         <div v-for="treatment in examination.treatments" style="margin-top: 5px; margin-left:4px">
-                            <div v-if="treatment.isChecked" style="border-bottom:1px solid rgba(0,0,0,0.3); width:100%; padding:6px;color:black">
+                            <div v-if="treatment.isChecked" style="border-bottom:1px solid rgba(0,0,0,0.3); width:100%; padding:6px;">
                                 {{treatment.name}}
                             </div>
                             <div v-if="treatment.description" style="margin-left: 12px;margin-top:12px; width:100%;padding:6px">
@@ -80,20 +83,52 @@
                 <ion-icon :icon="add"></ion-icon>
                 </ion-fab-button>
             </ion-fab>
+            <ion-modal ref="modal" :isOpen="deleteExaminationModalOpen">
+                <ion-header>
+                    <ion-toolbar>
+                    <ion-buttons slot="start">
+                        <ion-button @click="cancel()">Cancel</ion-button>
+                    </ion-buttons>
+                    <ion-buttons slot="end">
+                        <ion-button :strong="true" @click="confirm()">Usuń</ion-button>
+                    </ion-buttons>
+                    </ion-toolbar>
+                </ion-header>
+                <ion-content class="ion-padding">
+                    Czy na pewno chcesz usunąć wizytę?
+                </ion-content>
+            </ion-modal>
+            <ion-modal ref="modal" :isOpen="deleteUserModalOpen">
+                <ion-header>
+                    <ion-toolbar>
+                    <ion-buttons slot="start">
+                        <ion-button @click="cancelUser()">Cancel</ion-button>
+                    </ion-buttons>
+                    <ion-buttons slot="end">
+                        <ion-button :strong="true" @click="confirmUser()">Usuń</ion-button>
+                    </ion-buttons>
+                    </ion-toolbar>
+                </ion-header>
+                <ion-content class="ion-padding">
+                    Czy na pewno chcesz usunąć użytkownika?
+                </ion-content>
+            </ion-modal>
         </ion-content>
     </ion-page>
 </template>
   
   
 <script setup lang="ts">
-import { IonItem,IonPage, IonFab, IonFabList, IonFabButton, IonIcon,IonSearchbar, IonContent, IonBackButton, IonButtons, IonButton, IonHeader, IonCardHeader, IonCardTitle, IonCardSubtitle, IonCardContent, IonCard, IonToolbar, IonAvatar, IonGrid, IonRow, IonCol} from '@ionic/vue';
+import { IonItem,IonPage, IonFab, IonFabList, IonFabButton,IonModal, IonIcon,IonSearchbar, IonContent, IonBackButton, IonButtons, IonButton, IonHeader, IonCardHeader, IonCardTitle, IonCardSubtitle, IonCardContent, IonCard, IonToolbar, IonAvatar, IonGrid, IonRow, IonCol} from '@ionic/vue';
 import { onMounted, ref, computed} from 'vue';
-import { caretBack, swapHorizontalOutline } from 'ionicons/icons';
+import { caretBack, musicalNote, swapHorizontalOutline } from 'ionicons/icons';
 import { useGlobalStore } from '@/pinia';
 import { useRoute, useRouter } from 'vue-router';
 import { trashOutline, add, createOutline, document, colorPalette, globe, accessibilityOutline, barChartOutline } from 'ionicons/icons';
 import { Examination } from '@/model';
 
+const deleteExaminationModalOpen = ref(false);
+const deleteUserModalOpen = ref(false);
 const piniaStore = useGlobalStore();
 const selectedUser = computed(() => piniaStore.users.find(user => user.id === route.params.id));
 const sorting = ref<string>("");
@@ -101,6 +136,8 @@ const examinationsFilteredAndSorted = computed(() => {
     return selectedUser.value?.examinations?.filter(examination => {
         return (examination.diagnosis.toLowerCase().includes(searchText.value.toLowerCase()) ||
         examination.treatments.some(treatment => treatment.name.toLowerCase().includes(searchText.value.toLowerCase()) && treatment.isChecked) ||
+        examination.muscleTests.some(muscleTest => muscleTest.name.toLowerCase().includes(searchText.value.toLowerCase()) && muscleTest.isChecked) ||
+        examination.muscleTests.some(muscleTest => muscleTest.result.toLowerCase().includes(searchText.value.toLowerCase()) && muscleTest.isChecked) ||
         examination.treatments.some(treatment => treatment.description.toLowerCase().includes(searchText.value.toLowerCase()) && treatment.isChecked) || 
         examination.symptoms.some(symptom => symptom.name.toLowerCase().includes(searchText.value.toLowerCase()) && symptom.isChecked) || 
         examination.notes.toLowerCase().includes(searchText.value.toLowerCase()) ||
@@ -141,12 +178,13 @@ const formatDate = (date: string) => {
     };
     return new Date(date).toLocaleDateString('pl-PL', options);
 };
-
+const showExaminationSummary = (examinationId: string) => {
+    router.push({ path: `/examinationSummary/${selectedUser.value?.id}/${examinationId}` });
+};
 onMounted(async () => {
 })
 const deleteUser = () => {
-    piniaStore.removeUser(selectedUser.value?.id!);
-    router.push({ path: '/' });
+    deleteUserModalOpen.value = true;
 };
 const navigateToManageExamination = () => {
     router.push({ path: `/manageExamination/${selectedUser.value?.id}` });
@@ -160,11 +198,32 @@ function generateId(length = 15) {
   }
   return result;
 }
-const manageExamination = (examinationId : string) => {
+const manageExamination = (event:any, examinationId : string) => {
+    event.stopPropagation();
     router.push({ path: `/manageExamination/${selectedUser.value?.id}`, query: { examinationId: examinationId } });
 };
-const deleteExamination = (examinationId:string) => {
-    piniaStore.deleteExamination(examinationId, selectedUser.value?.id!);
+const selectedExamnationId = ref<string>("");
+const deleteExamination = (event:any, examinationId:string) => {
+    event.stopPropagation();
+    deleteExaminationModalOpen.value = true;
+    selectedExamnationId.value = examinationId;
+};
+const confirm = () => {
+    piniaStore.deleteExamination(selectedExamnationId.value, selectedUser.value?.id!);
+    deleteExaminationModalOpen.value = false;
+    selectedExamnationId.value = "";
+};
+const cancel = () => {
+    deleteExaminationModalOpen.value = false;
+    selectedExamnationId.value = "";
+};
+const confirmUser = () => {
+    piniaStore.removeUser(selectedUser.value?.id!);
+    deleteUserModalOpen.value = false;
+    router.push({ path: '/' });
+};
+const cancelUser = () => {
+    deleteUserModalOpen.value = false;
 };
 </script>
   
@@ -187,12 +246,10 @@ ion-button {
     --color: black;
 }
 .header{
-    --background: rgba(0,0,0,0.15);
-    --color: black;
+
 }
 .header-1{
-    --background: rgba(0,0,0,0.05) ;
-    --color: black;
+
 }
 </style>
   

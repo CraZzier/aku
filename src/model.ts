@@ -17,6 +17,7 @@ export interface User {
     age?: number;
     email?: string;
     phone?: string;
+    created: string;
     examinations?: Examination[];
 }
 

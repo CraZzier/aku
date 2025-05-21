@@ -76,6 +76,11 @@
             <ion-label>Puls</ion-label>
           </ion-item>
           <ion-item slot="content">
+            <ion-button slot="end" fill="clear" @click="clearCanvas()">
+                <ion-icon :icon="closeCircleOutline"></ion-icon>
+            </ion-button>
+          </ion-item>
+          <ion-item slot="content">
             <canvas ref="canvas" id="canvas"></canvas>
           </ion-item>
         </ion-accordion>
@@ -120,7 +125,7 @@
                 </div>
                 <ion-item>
                     <ion-input
-                        v-model="customSymptom"
+                        v-model="customTreatment"
                         label-placement="stacked"
                         type="text"
                         placeholder="Inne"
@@ -181,7 +186,7 @@ import {
   IonToolbar,
 } from "@ionic/vue";
 import { reactive, onMounted, ref, toRaw } from "vue";
-import { caretBack, add, pulse } from "ionicons/icons";
+import { caretBack, add, pulse, closeCircleOutline } from "ionicons/icons";
 import { useGlobalStore } from "@/pinia";
 import { Examination, MuscleTest, Symptom, Treatment } from "@/model";
 import { Camera, CameraResultType, CameraSource } from '@capacitor/camera';
@@ -287,6 +292,7 @@ const selectedImage = ref<string | undefined>(undefined);
 const canvas = ref<HTMLCanvasElement | null>();
 let isDrawing = false;
 const customSymptom = ref<string>("");
+const customTreatment = ref<string>("");
 const pickImage = async () => {
   try {
     const image = await Camera.getPhoto({
@@ -319,16 +325,16 @@ const saveExamination = async () => {
 };
 const addCustomTreatment = () => {
   if (
-    customSymptom.value.trim() !== "" &&
-    !treatments.find((treatment) => treatment.name === customSymptom.value)
+    customTreatment.value.trim() !== "" &&
+    !treatments.find((treatment) => treatment.name === customTreatment.value)
   ) {
     treatments.push({
-      name: customSymptom.value,
+      name: customTreatment.value,
       isChecked: true,
       expandable: false,
       description: "",
     });
-    customSymptom.value = "";
+    customTreatment.value = "";
   }
 };
 const addCustomSymptom = () => {
@@ -384,6 +390,7 @@ onMounted(() => {
     ctx.value!.drawImage(image, 0, 0);
   };
 
+
   canvas.value.addEventListener("mousedown", startDrawing);
   canvas.value.addEventListener("mousemove", draw);
   canvas.value.addEventListener("mouseup", stopDrawing);
@@ -399,7 +406,13 @@ onMounted(() => {
   });
   canvas.value.addEventListener("touchend", stopDrawing);
 });
-
+const clearCanvas = () => {
+  if (ctx.value) {
+    image.src = "/puls.jpg";
+    imgSaved.value = canvas.value!.toDataURL();
+    ctx.value!.drawImage(image, 0, 0)
+  }
+};
 function generateId(length = 15) {
   const chars =
     "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789";
