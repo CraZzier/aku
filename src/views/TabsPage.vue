@@ -60,7 +60,7 @@ const synchronise = async() =>{
   const upOrDown = lastClicked == "syncUp" ? "up" : "down"
   if (upOrDown == "up") {
       try{
-        const res = await fetch('https://testy.pl.agamadin.hostilla.pl/api/sync/up?param='+password.value, {
+        const res = await fetch('https://akupunkturaigla.pl/api/sync/up?param='+password.value, {
           method: 'POST',
           headers: {
             'Content-Type': 'application/json',
@@ -80,7 +80,7 @@ const synchronise = async() =>{
       }
   }else{
       try{
-        const res = await fetch('https://testy.pl.agamadin.hostilla.pl/api/sync/down?param='+password.value, {
+        const res = await fetch('https://akupunkturaigla.pl/api/sync/down?param='+password.value, {
           method: 'POST',
           headers: {
             'Content-Type': 'application/json',
