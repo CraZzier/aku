@@ -4,6 +4,10 @@ import TabsPage from '../views/TabsPage.vue'
 
 const routes: Array<RouteRecordRaw> = [
   {
+    path: '/login',
+    component: () => import('@/views/Login.vue')
+  },
+  {
     path: '/',
     redirect: '/tabs/tab1'
   },
@@ -51,5 +55,13 @@ const router = createRouter({
   history: createWebHistory(import.meta.env.BASE_URL),
   routes
 })
+router.beforeEach((to, from, next) => {
+  const isAuthenticated = localStorage.getItem('token') === '321martamarta321';
+  if (to.path !== '/login' && !isAuthenticated) {
+    next('/login');
+  } else {
+    next();
+  }
+});
 
 export default router

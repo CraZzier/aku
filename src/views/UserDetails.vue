@@ -48,7 +48,7 @@
                 </ion-item>
                 <div v-for="(examination, id) in examinationsFilteredAndSorted" :key="generateId()">
                     <ion-item class="header" @click="showExaminationSummary(examination.id)">
-                        <div style="font-size:12px;padding-right:10px">Wizyta -  {{ formatDate(examination.date) }}</div>
+                        <div style="font-size:14px;padding-right:10px;padding-left:10px;">Wizyta -  {{ formatDate(examination.date) }}</div>
                         <ion-button  slot="end" color="secondary" @click="manageExamination($event,examination.id)">
                             <ion-icon :icon="createOutline"></ion-icon>
                         </ion-button>
@@ -56,15 +56,10 @@
                             <ion-icon :icon="trashOutline"></ion-icon>
                         </ion-button>
                     </ion-item>
-                    <ion-item class="header-1">
-                            <div>Diagnoza</div>
-                    </ion-item>
-                    <ion-item>
-                            <div style="font-size:14px;margin-left:6px">{{examination.diagnosis || 'Brak danych'}}</div>
-                    </ion-item>
-                    <ion-item class="header-1">
-                            <div>Leczenie</div>
-                    </ion-item>
+
+                    <div style="padding-left:22px;padding-top:2px; color:white"><p>Diagnoza:</p></div>
+                        <div style="font-size:14px;margin-left:6px;padding-left: 16px;">{{examination.diagnosis || 'Brak danych'}}</div>
+                    <div style="padding-left:22px;padding-top:2px; color:white"><p>Leczenie:</p></div>
                     <div style="padding-left: 12px; padding-bottom: 12px">
                         <div v-for="treatment in examination.treatments" style="margin-top: 5px; margin-left:4px">
                             <div v-if="treatment.isChecked" style="border-bottom:1px solid rgba(0,0,0,0.3); width:100%; padding:6px;">
@@ -87,7 +82,7 @@
                 <ion-header>
                     <ion-toolbar>
                     <ion-buttons slot="start">
-                        <ion-button @click="cancel()">Cancel</ion-button>
+                        <ion-button @click="cancel()">Anuluj</ion-button>
                     </ion-buttons>
                     <ion-buttons slot="end">
                         <ion-button :strong="true" @click="confirm()">Usuń</ion-button>
@@ -102,7 +97,7 @@
                 <ion-header>
                     <ion-toolbar>
                     <ion-buttons slot="start">
-                        <ion-button @click="cancelUser()">Cancel</ion-button>
+                        <ion-button @click="cancelUser()">Anuluj</ion-button>
                     </ion-buttons>
                     <ion-buttons slot="end">
                         <ion-button :strong="true" @click="confirmUser()">Usuń</ion-button>
