@@ -34,6 +34,9 @@
         <div style="padding-left: 10px">
             <span style="font-size:14px;margin-left:6px">{{notes}}</span>
         </div>
+        <div>
+            <img v-if="selectedImage" :src="selectedImage" style="width: 100%; height: auto; margin-top: 10px" />
+        </div>
         <canvas ref="canvas" style="border: 1px solid black; margin-top: 10px"></canvas>
       </ion-list>
     </ion-content>

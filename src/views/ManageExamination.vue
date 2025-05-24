@@ -13,7 +13,7 @@
           <ion-label>Data wizyty</ion-label>
           <ion-datetime-button datetime="datetime"></ion-datetime-button>
           <ion-modal :keep-contents-mounted="true">
-            <ion-datetime id="datetime"></ion-datetime>
+            <ion-datetime v-model="visitDate" id="datetime"></ion-datetime>
           </ion-modal>
         </ion-item>
       </ion-list>
@@ -178,6 +178,7 @@ import {
   IonPage,
   IonContent,
   IonItem,
+  IonIcon,
   IonList,
   IonButton,
   IonBackButton,
@@ -307,11 +308,12 @@ const pickImage = async () => {
     console.error('Image picking cancelled or failed', error);
   }
 };
+const visitDate = ref<string>(new Date().toISOString());
 const saveExamination = async () => {
   const id = route.query.examinationId || generateId();
   const examination: Examination = {
     id: id as string,
-    date: new Date().toISOString(),
+    date: visitDate.value,
     symptoms: toRaw(symptoms),
     muscleTests: toRaw(muscleTestObjects),
     pulseImage: imgSaved.value,

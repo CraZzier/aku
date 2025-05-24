@@ -118,7 +118,17 @@ const filteredUsers = computed(() => {
     console.log(user);
     return (
       user?.name?.toLowerCase().includes(searchText.value.toLowerCase()) ||
-      user?.surname?.toLowerCase().includes(searchText.value.toLowerCase())
+      user?.surname?.toLowerCase().includes(searchText.value.toLowerCase()) ||
+      user?.examinations?.some(examination => 
+        examination.diagnosis.toLowerCase().includes(searchText.value.toLowerCase()) ||
+        examination.treatments.some(treatment => treatment.name.toLowerCase().includes(searchText.value.toLowerCase()) && treatment.isChecked) ||
+        examination.muscleTests.some(muscleTest => muscleTest.name.toLowerCase().includes(searchText.value.toLowerCase()) && muscleTest.isChecked) ||
+        examination.muscleTests.some(muscleTest => muscleTest.result.toLowerCase().includes(searchText.value.toLowerCase()) && muscleTest.isChecked) ||
+        examination.treatments.some(treatment => treatment.description.toLowerCase().includes(searchText.value.toLowerCase()) && treatment.isChecked) || 
+        examination.symptoms.some(symptom => symptom.name.toLowerCase().includes(searchText.value.toLowerCase()) && symptom.isChecked) || 
+        examination.notes.toLowerCase().includes(searchText.value.toLowerCase()) ||
+        examination.date.toLowerCase().includes(searchText.value.toLowerCase())
+      )
     );
   }).sort((a, b) => {
     const lastVisitA = new Date(a.examinations?.sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime())[0]?.date || "").getTime();

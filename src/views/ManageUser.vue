@@ -105,6 +105,7 @@ const saveUser = async () => {
         };
         piniaStore.addUser(user);
     }
+    // Reset userData after saving
     router.push({ path: '/' });
 };
 
@@ -113,11 +114,11 @@ onMounted(() => {
     if (id) {
         const user = piniaStore.users.find(user => user.id === id);
         if (user) {
-            userData.name = user.name || '';
-            userData.surname = user.surname || '';
-            userData.age = user.age || 0;
-            userData.email = user.email || '';
-            userData.phone = user.phone || '';
+            userData.name = '';
+            userData.surname =  '';
+            userData.age =  0;
+            userData.email = '';
+            userData.phone = '';
         }
     }
 });
