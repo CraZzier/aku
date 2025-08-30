@@ -35,7 +35,7 @@
             <span style="font-size:14px;margin-left:6px">{{notes}}</span>
         </div>
         <div>
-            <img v-if="selectedImage" :src="selectedImage" style="width: 100%; height: auto; margin-top: 10px" />
+            <img v-if="selectedImage" :src="selectedImageContent" style="width: 100%; height: auto; margin-top: 10px" />
         </div>
         <canvas ref="canvas" style="border: 1px solid black; margin-top: 10px"></canvas>
       </ion-list>
@@ -75,6 +75,7 @@ const diagnosis = ref<string>("");
 const notes = ref<string>("");
 const imgSaved = ref();
 const route = useRoute();
+const selectedImageContent = ref<string | undefined>(undefined);
 const selectedImage = ref<string | undefined>(undefined);
 const canvas = ref<HTMLCanvasElement | null>();
 let symptoms = reactive<Symptom[]>([]);
@@ -87,7 +88,7 @@ const ctx = ref<CanvasRenderingContext2D | null>(null);
 
 const image = new Image();
 image.src = "/puls.jpg";
-onMounted(() => {
+onMounted(async() => {
   console.log(route.params.examinationId, route.params.userId);
   console.log(piniaStore.users);
   if (route.params.examinationId && route.params.userId){
@@ -106,7 +107,7 @@ onMounted(() => {
         symptoms = examination.symptoms;
         muscleTestObjects = examination.muscleTests;
         imgSaved.value = examination.pulseImage;
-        image.src = examination.pulseImage || "/puls.jpg";
+        image.src = await getImageByKey(imgSaved.value) || "/puls.jpg";
         treatments=examination.treatments;
         notes.value = examination.notes;
         selectedImage.value = examination.notesImage;
@@ -123,6 +124,26 @@ onMounted(() => {
     canvas.value!.height = image.height;
     ctx.value!.drawImage(image, 0, 0);
   };
+  if (selectedImage.value) {
+    selectedImageContent.value = await getImageByKey(selectedImage.value) || undefined;
+  }
+});
+
+const getImageByKey = async (key: string) => {
+  try {
+    const res = await fetch('https://akupunkturaigla.pl/api/sync/image/download?key=' + key, {
+      method: 'GET',
+      headers: {
+        'Content-Type': 'application/json'
+      }
+    });
+    const data = await res.json();
+    return data.content;
+  } catch (error) {
+    console.error('Error downloading photo:', error);
+    return null;
+  }
+};
 
 function generateId(length = 15) {
   const chars =
@@ -134,7 +155,6 @@ function generateId(length = 15) {
   }
   return result;
 }
-});
 </script>
 
 <style>

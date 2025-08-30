@@ -153,8 +153,8 @@
                 </ion-button>
             </ion-item>
             <ion-item slot="content">
-                <a v-if="selectedImage" :href="selectedImage" target="_blank">
-                    <img :src="selectedImage" alt="Selected Image" />
+                <a v-if="selectedImage" :href="selectedImageContent" target="_blank">
+                    <img :src="selectedImageContent" alt="Selected Image" />
                 </a>
             </ion-item>
         </ion-accordion>
@@ -287,13 +287,19 @@ let symptoms = reactive<Symptom[]>(
     isChecked: false,
   }))
 );
-const imgSaved = ref();
-const route = useRoute();
-const selectedImage = ref<string | undefined>(undefined);
-const canvas = ref<HTMLCanvasElement | null>();
 let isDrawing = false;
+const route = useRoute();
+const imgSaved = ref();
+const imgSavedContent =ref();
+const selectedImage = ref<string | undefined>(undefined);
+const selectedImageContent = ref<string | undefined>(undefined);
+const canvas = ref<HTMLCanvasElement | null>();
 const customSymptom = ref<string>("");
 const customTreatment = ref<string>("");
+const visitDate = ref<string>(new Date().toISOString());
+let pulseImageModified = false
+let noteImageModified = false
+
 const pickImage = async () => {
   try {
     const image = await Camera.getPhoto({
@@ -303,28 +309,76 @@ const pickImage = async () => {
       source: CameraSource.Photos, // 👈 or CameraSource.Prompt to let user choose camera/gallery
     });
 
-    selectedImage.value = image.dataUrl;
+    selectedImage.value = generateId();
+    selectedImageContent.value = image.dataUrl
+    noteImageModified = true
   } catch (error) {
     console.error('Image picking cancelled or failed', error);
   }
 };
-const visitDate = ref<string>(new Date().toISOString());
+
+const getImageByKey = async (key: string) => {
+  try {
+    const res = await fetch('https://akupunkturaigla.pl/api/sync/image/download?key=' + key, {
+      method: 'GET',
+      headers: {
+        'Content-Type': 'application/json'
+      }
+    });
+    const data = await res.json();
+    return data.content;
+  } catch (error) {
+    console.error('Error downloading photo:', error);
+    return null;
+  }
+};
+
+
+const uploadPhoto = async (content: string | undefined, key: string | undefined) => {
+  if (!content || !key) return;
+  try {
+    const res = await fetch('https://akupunkturaigla.pl/api/sync/image/upload', {
+      method: 'POST',
+      body: JSON.stringify({ content, key, type: 'image/jpeg' }),
+      headers: {
+        'Content-Type': 'application/json'
+      }
+    });
+  } catch (error) {
+    console.error('Error uploading photo:', error);
+  }
+};
 const saveExamination = async () => {
   const id = route.query.examinationId || generateId();
+
+  let photoId = selectedImage.value;
+  let pulsePhotoId = imgSaved.value;
+
+  //Upload photo to database and give unique id
+  if(noteImageModified){
+      await uploadPhoto(selectedImageContent.value, photoId);
+  }
+
+  if(pulseImageModified){
+      await uploadPhoto(imgSavedContent.value, pulsePhotoId);
+  }
+
+  //Saving whole
   const examination: Examination = {
     id: id as string,
     date: visitDate.value,
     symptoms: toRaw(symptoms),
     muscleTests: toRaw(muscleTestObjects),
-    pulseImage: imgSaved.value,
+    pulseImage: pulsePhotoId  ,
     diagnosis: diagnosis.value,
     treatments: toRaw(treatments),
     notes: notes.value,
-    notesImage: selectedImage.value as string,
+    notesImage: photoId as string,
   };
   piniaStore.addExamination(examination, route.params.userId as string);
   router.push('/userDetails/' + route.params.userId);
 };
+
 const addCustomTreatment = () => {
   if (
     customTreatment.value.trim() !== "" &&
@@ -339,6 +393,7 @@ const addCustomTreatment = () => {
     customTreatment.value = "";
   }
 };
+
 const addCustomSymptom = () => {
   if (
     customSymptom.value.trim() !== "" &&
@@ -351,12 +406,12 @@ const addCustomSymptom = () => {
     customSymptom.value = "";
   }
 };
+
 const piniaStore = useGlobalStore();
 const ctx = ref<CanvasRenderingContext2D | null>(null);
-
 const image = new Image();
 image.src = "/puls.jpg";
-onMounted(() => {
+onMounted(async() => {
   console.log(route.query.examinationId, route.params.userId);
   if (route.query.examinationId && route.params.userId){
     const user = piniaStore.users.find(
@@ -368,18 +423,25 @@ onMounted(() => {
       const examination = user.examinations?.find(
         (examination) => examination.id === route.query.examinationId
       );
+
       if (examination) {
         console.log(examination);
         diagnosis.value = examination.diagnosis;
         symptoms = examination.symptoms;
         muscleTestObjects = examination.muscleTests;
         imgSaved.value = examination.pulseImage;
-        image.src = examination.pulseImage || "/puls.jpg";
         treatments=examination.treatments;
         notes.value = examination.notes;
         selectedImage.value = examination.notesImage;
       }
     }
+  }
+  if(selectedImage.value){
+    selectedImageContent.value = await getImageByKey(selectedImage.value) || undefined
+  }
+  if(imgSaved.value != 'puls.jpg'){
+    imgSavedContent.value = await getImageByKey(imgSaved.value) || undefined
+    image.src = imgSavedContent.value || "/puls.jpg";
   }
   if (!canvas.value) {
     console.error("Canvas element is not available");
@@ -411,7 +473,8 @@ onMounted(() => {
 const clearCanvas = () => {
   if (ctx.value) {
     image.src = "/puls.jpg";
-    imgSaved.value = canvas.value!.toDataURL();
+    imgSaved.value = "/puls.jpg";
+    imgSavedContent.value = undefined
     ctx.value!.drawImage(image, 0, 0)
   }
 };
@@ -437,6 +500,7 @@ const getPos = (e: any) => {
 
 // Drawing functions
 const startDrawing = (e: any) => {
+  pulseImageModified = true
   isDrawing = true;
   console.log(e);
   const pos = getPos(e);
@@ -460,7 +524,8 @@ const draw = (e: any) => {
 const stopDrawing = () => {
   isDrawing = false;
   ctx.value!.beginPath();
-  imgSaved.value = canvas.value!.toDataURL();
+  imgSaved.value = generateId();
+  imgSavedContent.value = canvas.value!.toDataURL();
   console.log(imgSaved.value);
 };
 </script>
