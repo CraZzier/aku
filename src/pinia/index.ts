@@ -9,6 +9,27 @@ export const useGlobalStore = defineStore('global', () => {
     const fetchUsers = computed(() => {
         return users.value ?? []
     })
+    const updateRemoteBase = async()=>{
+        try{
+            const res = await fetch('https://akupunkturaigla.pl/api/state/up?param=martamarta321!', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({
+                    base: {users: toRaw(users.value)},
+                })
+            });
+            if (!res.ok) {
+            console.log("Wystąpił błąd podczas synchronizacji")
+            } else {
+            console.log("Synchronizacja zakończona")
+            }
+        }catch (error) {
+            console.log("Wystąpił błąd podczas synchronizacji")
+            console.error('Error:', error);
+        }
+    }
     const setUsers = async (usersList: User[]) => {
         users.value = usersList
         await ionicStore.set('users', toRaw(users.value))
@@ -25,6 +46,7 @@ export const useGlobalStore = defineStore('global', () => {
             console.log('usersFetched', users.value)
             await ionicStore.set('users', toRaw(users.value))
         }
+        await updateRemoteBase()
     }
     const removeUser = async(userId: string) => {
         const usersFetched = await ionicStore.get('users')
@@ -34,10 +56,12 @@ export const useGlobalStore = defineStore('global', () => {
             await ionicStore.set('users', toRaw(usersFetched))
         }
         users.value = usersFetched
+        await updateRemoteBase()
     }
 
     const getUsers = async() => {
         users.value = await ionicStore.get('users') || []
+        await downloadRemoteBase();
         return toRaw(users.value)
     }
     const addExamination = async(examination: any, userId: string) => {
@@ -63,6 +87,8 @@ export const useGlobalStore = defineStore('global', () => {
                 }
             }
         }
+        await updateRemoteBase()
+
     }
     const deleteExamination = async(examinationId: string, userId: string) => {
         const usersFetched = await ionicStore.get('users')
@@ -79,6 +105,7 @@ export const useGlobalStore = defineStore('global', () => {
                 }
             }
         }
+        await updateRemoteBase()
     }
     const getExaminations = async(userId: string) => {
         const usersFetched = await ionicStore.get('users')
@@ -91,5 +118,27 @@ export const useGlobalStore = defineStore('global', () => {
         }
         return []
     }
-    return { users, addUser, removeUser, getUsers, addExamination, getExaminations, deleteExamination, setUsers, fetchUsers }
+
+    const downloadRemoteBase = async()=>{
+        try{
+            const res = await fetch('https://akupunkturaigla.pl/api/state/down?param=martamarta321!', {
+                method: 'GET',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+            });
+            const data = await res.json();
+            console.log(JSON.parse(data.base).base.users)
+            setUsers(JSON.parse(data.base).base.users)
+            if (res.ok) {
+                console.log("Synchronizacja zakończona")
+            } else {
+                console.log("Wystąpił błąd podczas synchronizacji")
+            }
+        }catch (error) {
+                console.log("Wystąpił błąd podczas synchronizacji")
+            console.error('Error:', error);
+        }
+    }
+    return { users, addUser, removeUser, getUsers, addExamination, getExaminations, deleteExamination, setUsers, fetchUsers, downloadRemoteBase }
 })

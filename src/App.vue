@@ -24,8 +24,12 @@ onBeforeMount(async () => {
     console.error('Pinia store not found');
     return;
   }
-  await piniaStore.getUsers();
+  // await piniaStore.getUsers();
   console.log('Users loaded:', piniaStore.users);
   ready.value = true;
 });
+onMounted(async () => {
+  const piniaStore = useGlobalStore();
+  await piniaStore.downloadRemoteBase();
+}); 
 </script>
