@@ -1,5 +1,5 @@
 <template>
-  <ion-app v-if="ready">
+  <ion-app v-show="ready">
       <ion-router-outlet :key="$route.fullPath"/>
   </ion-app>
 </template>
