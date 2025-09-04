@@ -30,6 +30,7 @@ onBeforeMount(async () => {
 });
 onMounted(async () => {
   const piniaStore = useGlobalStore();
+  console.log('Downloading remote base...');
   await piniaStore.downloadRemoteBase();
 }); 
 </script>
